@@ -1,0 +1,28 @@
+{
+  "name": "grouple",
+  "title": "Grouple",
+  "description": "Inspired by Google Plus Circles, Grouple aims at simplifying the creation of groupings, in the form of circless.",
+  "version": "0.1.0",
+  "homepage": "https://github.com/jonaphin/grouple",
+  "author": {
+    "name": "Jonathan Lancar",
+    "url": "http://www.genesx.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jonaphin/grouple.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jonaphin/grouple/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/jonaphin/grouple/blob/master/LICENSE-MIT"
+    }
+  ],
+  "dependencies": {
+    "jquery": "~1.5"
+  },
+  "keywords": []
+}
