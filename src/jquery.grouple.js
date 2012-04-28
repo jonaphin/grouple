@@ -19,33 +19,30 @@
     };
 
     return this.each(function() {
-      var canvas_width = $(this).width();
-      var canvas_height = $(this).height();
-      var center_x = canvas_width / 2;
-      var center_y = canvas_height / 2;
+      var canvasWidth = $(this).width();
+      var canvasHeight = $(this).height();
+      var centerX = canvasWidth / 2;
+      var centerY = canvasHeight / 2;
       // choose the smaller side as outer radius
-      var radius_outer = (center_x < center_y ? center_x : center_y) * 0.9;
-      var radius_inner = radius_outer * 0.6;
-      
-      // stroke
-      var line_width = opts.stroke_width ? opts.stroke_width : 0;
+      var radiusOuter = (centerX < centerY ? centerX : centerY) * 0.9;
+      var radiusInner = radiusOuter * 0.6;
 
-      $(this).html('<canvas class="grouple-canvas" width="'+canvas_width+'" height="'+canvas_height+'"></canvas>');
+      $(this).html('<canvas class="grouple-canvas" width="'+canvasWidth+'" height="'+canvasHeight+'"></canvas>');
 
       var canvas = $(this).find("canvas")[0];
       var ctx = canvas.getContext("2d");
       ctx.fillStyle="#FF0000";
       ctx.beginPath();
-      ctx.arc(center_x, center_y, radius_outer, 0, Math.PI * 2, true);
+      ctx.arc(centerX, centerY, radiusOuter, 0, Math.PI * 2, true);
       ctx.closePath();
       ctx.fill();
-      ctx.lineWidth = line_width;
-      ctx.strokeStyle = "black";
+      ctx.lineWidth = opts.strokeWidth;
+      ctx.strokeStyle = opts.strokeColor;
       ctx.stroke();
 
       ctx.fillStyle="#FFFFFF";
       ctx.beginPath();
-      ctx.arc(center_x, center_y, radius_inner, 0, Math.PI * 2, true);
+      ctx.arc(centerX, centerY, radiusInner, 0, Math.PI * 2, true);
       ctx.closePath();
       ctx.fill();
 
@@ -55,5 +52,10 @@
 
       ctx.restore();
     });
+  };
+
+  $.fn.grouple.options = {
+    strokeWidth: 0,
+    strokeColor: "#000000"
   };
 }(jQuery));
