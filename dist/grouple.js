@@ -1,10 +1,6 @@
-/*
- * grouple
- * https://github.com/jonaphin/grouple
- *
- * Copyright (c) 2012 Jonathan Lancar
- * Licensed under the MIT license.
- */
+/*! Grouple - v0.1.0 - 2012-04-28
+* https://github.com/jonaphin/grouple
+* Copyright (c) 2012 Jonathan Lancar; Licensed MIT */
 
 (function($) {
 
