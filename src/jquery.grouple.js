@@ -5,7 +5,6 @@
  * Copyright (c) 2012 Jonathan Lancar
  * Licensed under the MIT license.
  */
-
 (function($) {
   var Grouple = function(container, opts) {
     var self = this;
@@ -30,7 +29,7 @@
 
     /* render */
     this.render = function() {
-      self.circle(self.centerX, self.centerY, self.radiusInner);
+      self.circle(self.centerX, self.centerY, self.radiusInner, self.settings.innerFillColor);
 
       if(self.settings.strokeWidth > 0) {
         self.stroke(self.settings.strokeWidth, self.settings.strokeColor);
@@ -45,18 +44,28 @@
 
       self.clear();
 
+      self.circle(self.centerX, self.centerY, self.radiusInner, self.settings.outerFillColor);
+
       if(fromRadius < toRadius) {
         fromRadius++;
       } else if(fromRadius > toRadius) {
         fromRadius--;
       }
 
-      self.circle(self.centerX, self.centerY, fromRadius);
+      self.circle(self.centerX, self.centerY, fromRadius, self.settings.outerFillColor);
+      self.circle(self.centerX, self.centerY, self.radiusInner, self.settings.innerFillColor);
 
       setTimeout(function(){
         self.expand(fromRadius, toRadius);
-      }, 10);
+      }, 5);
     };
+
+    /* Events */
+    $(canvas).live("mouseover", function(e){
+      self.expand(self.radiusInner, self.radiusOuter);
+    }).live("mouseout", function(e){
+      self.expand(self.radiusOuter, self.radiusInner);
+    });
 
     /* Core Drawing Functions */
     this.circle = function(centerX, centerY, radius, fillColor) {
@@ -78,7 +87,7 @@
     };
 
     /* Events Functions */
-    function event_to_canvas (event) {
+    this.event_to_canvas = function(event) {
       if (event.layerX || event.layerX === 0 ) { // Firefox
         event._x = event.layerX;
         event._y = event.layerY;
@@ -92,7 +101,7 @@
       if (typeof handler === "function") {
         handler(event);
       }
-    }
+    };
   };
 
 
@@ -134,7 +143,7 @@
         return;
       }
 
-      var instance = new Grouple(this, self.options);
+      var instance = new Grouple(this, opts);
       instance.render();
 
       $(this).data("grouple_instance", instance);
@@ -143,6 +152,8 @@
 
   $.fn.grouple.options = {
     strokeWidth: 0,
-    strokeColor: "#000000"
+    strokeColor: "#000000",
+    innerFillColor: "#6699CC",
+    outerFillColor: "#DDDDDD"
   };
 }(jQuery));
