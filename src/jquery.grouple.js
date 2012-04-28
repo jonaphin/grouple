@@ -56,15 +56,4 @@
       ctx.restore();
     });
   };
-
-  // Static method.
-  $.circle = function() {
-    return 'awesome';
-  };
-
-  // Custom selector.
-  $.expr[':'].awesome = function(elem) {
-    return elem.textContent.indexOf('awesome') >= 0;
-  };
-
 }(jQuery));
