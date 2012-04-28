@@ -1,6 +1,6 @@
 # Grouple
 
-Inspired by Google Plus Circles, Grouple aims at simplifying the creation of groupings, in the form of circless.
+Inspired by Google Plus Circles, Grouple aims at simplifying the creation of groupings, in the form of circles.
 
 ## Getting Started
 Download the [production version][min] or the [development version][max].
