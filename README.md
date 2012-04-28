@@ -5,17 +5,27 @@ Inspired by Google Plus Circles, Grouple aims at simplifying the creation of gro
 ## Getting Started
 Download the [production version][min] or the [development version][max].
 
-[min]: https://raw.github.com/jonaphin/grouple/master/dist/grouple.min.js
-[max]: https://raw.github.com/jonaphin/grouple/master/dist/grouple.js
+[min]: https://raw.github.com/jonaphin/grouple/master/dist/jquery.grouple.min.js
+[max]: https://raw.github.com/jonaphin/grouple/master/dist/jquery.grouple.js
 
 In your web page:
 
 ```html
 <script src="jquery.js"></script>
-<script src="dist/grouple.min.js"></script>
+<script src="dist/jquery.grouple.min.js"></script>
+
+<style>
+#grouple_container {
+  width: 200px;
+  height: 200px;
+}
+</style>
+
+<div id="grouple_container"></div>
+
 <script>
 jQuery(function($) {
-  $.awesome(); // "awesome"
+  $("#grouple_container").grouple(); // "initialize grouple within your container"
 });
 </script>
 ```
