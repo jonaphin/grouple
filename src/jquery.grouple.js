@@ -45,12 +45,7 @@
       };
 
       var instance = new Grouple(this, self.options);
-
-      instance.circle(instance.centerX, instance.centerY, instance.radiusInner);
-
-      if(opts.strokeWidth > 0) {
-        instance.stroke(opts.strokeWidth, opts.strokeColor);
-      }
+      instance.render();
 
       $(this).data("grouple_instance", instance);
     });
@@ -83,6 +78,36 @@ var Grouple = function(container, opts) {
   var canvas = $(container).find("canvas")[0];
   var ctx = canvas.getContext("2d");
 
+  /* render */
+  this.render = function() {
+    self.circle(self.centerX, self.centerY, self.radiusInner);
+
+    if(self.settings.strokeWidth > 0) {
+      self.stroke(self.settings.strokeWidth, self.settings.strokeColor);
+    }
+  };
+
+  /* Animation */
+  this.expand = function(fromRadius, toRadius) {
+    if(fromRadius == toRadius) {
+      return;
+    }
+
+    self.clear();
+
+    if(fromRadius < toRadius) {
+      fromRadius++;
+    } else if(fromRadius > toRadius) {
+      fromRadius--;
+    }
+
+    self.circle(self.centerX, self.centerY, fromRadius);
+
+    setTimeout(function(){
+      self.expand(fromRadius, toRadius);
+    }, 10);
+  };
+
   /* Core Drawing Functions */
   this.circle = function(centerX, centerY, radius, fillColor) {
     ctx.fillStyle = fillColor;
@@ -97,4 +122,9 @@ var Grouple = function(container, opts) {
     ctx.strokeStyle = color;
     ctx.stroke();
   };
+
+  this.clear = function() {
+    ctx.clearRect(0, 0, self.canvasWidth, self.canvasHeight);
+  };
+
 };
