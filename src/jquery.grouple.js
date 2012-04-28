@@ -10,47 +10,49 @@
 
   // Collection method.
   $.fn.grouple = function(opts) {
+    var self = this;
     opts = $.extend({}, $.fn.grouple.options, opts);
 
-    var self = this;
+    this.opts = opts;
 
-    this.circle = function() {
+    /* Allow Options to be set by the user */
+    this.options = function(obj) {
+      if(typeof(obj) == "string") {
+        return opts[obj];
+      }
 
+      if(typeof(obj) == "object") {
+        for(var prop in obj) {
+          if(obj.hasOwnProperty(prop)) {
+            opts[prop] = obj[prop];
+          }
+        }
+      };
+
+      // we want to refresh the view with the new options
+      self.refresh();
+
+      return opts;
+    };
+
+    this.refresh = function() {
+      // redraw here
     };
 
     return this.each(function() {
-      var canvasWidth = $(this).width();
-      var canvasHeight = $(this).height();
-      var centerX = canvasWidth / 2;
-      var centerY = canvasHeight / 2;
-      // choose the smaller side as outer radius
-      var radiusOuter = (centerX < centerY ? centerX : centerY) * 0.9;
-      var radiusInner = radiusOuter * 0.6;
+      if($(this).data("grouple_instance") != undefined) {
+        return;
+      };
 
-      $(this).html('<canvas class="grouple-canvas" width="'+canvasWidth+'" height="'+canvasHeight+'"></canvas>');
+      var instance = new Grouple(this, self.options);
 
-      var canvas = $(this).find("canvas")[0];
-      var ctx = canvas.getContext("2d");
-      ctx.fillStyle="#FF0000";
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radiusOuter, 0, Math.PI * 2, true);
-      ctx.closePath();
-      ctx.fill();
-      ctx.lineWidth = opts.strokeWidth;
-      ctx.strokeStyle = opts.strokeColor;
-      ctx.stroke();
+      instance.circle(instance.centerX, instance.centerY, instance.radiusInner);
 
-      ctx.fillStyle="#FFFFFF";
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radiusInner, 0, Math.PI * 2, true);
-      ctx.closePath();
-      ctx.fill();
+      if(opts.strokeWidth > 0) {
+        instance.stroke(opts.strokeWidth, opts.strokeColor);
+      }
 
-      ctx.save();
-      ctx.translate(50,50);
-      ctx.scale(0.35,0.75);
-
-      ctx.restore();
+      $(this).data("grouple_instance", instance);
     });
   };
 
@@ -59,3 +61,40 @@
     strokeColor: "#000000"
   };
 }(jQuery));
+
+var Grouple = function(container, opts) {
+  var self = this;
+
+  // That's what Grouples do. They store items
+  this.items = [];
+
+  this.settings = $.extend({}, opts);
+
+  this.canvasWidth = $(container).width();
+  this.canvasHeight = $(container).height();
+  this.centerX = this.canvasWidth / 2;
+  this.centerY = this.canvasHeight / 2;
+  // choose the smaller side as outer radius
+  this.radiusOuter = (this.centerX < this.centerY ? this.centerX : this.centerY) * 0.9;
+  this.radiusInner = this.radiusOuter * 0.6;
+
+  /* initialize canvas */
+  $(container).html('<canvas class="grouple-canvas" width="'+this.canvasWidth+'" height="'+this.canvasHeight+'"></canvas>');
+  var canvas = $(container).find("canvas")[0];
+  var ctx = canvas.getContext("2d");
+
+  /* Core Drawing Functions */
+  this.circle = function(centerX, centerY, radius, fillColor) {
+    ctx.fillStyle = fillColor;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2, true);
+    ctx.closePath();
+    ctx.fill();
+  };
+
+  this.stroke = function(width, color) {
+    ctx.lineWidth = width;
+    ctx.strokeStyle = color;
+    ctx.stroke();
+  };
+};
