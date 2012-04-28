@@ -9,10 +9,8 @@
 (function($) {
 
   // Collection method.
-  $.fn.grouple = function(options) {
-    if(options === undefined) {
-      options = {};
-    }
+  $.fn.grouple = function(opts) {
+    opts = $.extend({}, $.fn.grouple.options, opts);
 
     var self = this;
 
@@ -30,7 +28,7 @@
       var radius_inner = radius_outer * 0.6;
       
       // stroke
-      var line_width = options.stroke_width ? options.stroke_width : 0;
+      var line_width = opts.stroke_width ? opts.stroke_width : 0;
 
       $(this).html('<canvas class="grouple-canvas" width="'+canvas_width+'" height="'+canvas_height+'"></canvas>');
 
