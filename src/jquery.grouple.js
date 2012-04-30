@@ -19,8 +19,9 @@
     this.centerX = this.canvasWidth / 2;
     this.centerY = this.canvasHeight / 2;
     // choose the smaller side as outer radius
-    this.radiusOuter = (this.centerX < this.centerY ? this.centerX : this.centerY) * 0.9;
-    this.radiusInner = this.radiusOuter * 0.6;
+    this.radiusOuterEnd = (this.centerX < this.centerY ? this.centerX : this.centerY) * 0.9;
+    this.radiusInner = this.radiusOuterEnd * 0.6;
+    this.radiusOuterInit = this.radiusInner + ((this.radiusOuterEnd - this.radiusInner) / 2);
 
     /* initialize canvas */
     $(container).html('<canvas class="grouple-canvas" width="'+this.canvasWidth+'" height="'+this.canvasHeight+'"></canvas>');
@@ -29,11 +30,16 @@
 
     /* render */
     this.render = function() {
+      // Outer Circle Inner Stroke
+      self.circle(self.centerX, self.centerY, self.radiusOuterInit, self.settings.outerCircleInnerStrokeColor);
+      // Outer Circle outer Stroke
+      self.stroke(self.settings.outerStrokeWidth, self.settings.outerStrokeColor);
+      // Outer Circle
+      self.circle(self.centerX, self.centerY, self.radiusOuterInit - 3, self.settings.outerFillColor);
+      // Inner Circle
       self.circle(self.centerX, self.centerY, self.radiusInner, self.settings.innerFillColor);
-
-      if(self.settings.strokeWidth > 0) {
-        self.stroke(self.settings.strokeWidth, self.settings.strokeColor);
-      }
+      // Inner Circle Stroke
+      self.stroke(self.settings.innerStrokeWidth, self.settings.innerStrokeColor);
     };
 
     /* Animation */
@@ -44,16 +50,17 @@
 
       self.clear();
 
-      self.circle(self.centerX, self.centerY, self.radiusInner, self.settings.outerFillColor);
-
       if(fromRadius < toRadius) {
         fromRadius++;
       } else if(fromRadius > toRadius) {
         fromRadius--;
       }
 
-      self.circle(self.centerX, self.centerY, fromRadius, self.settings.outerFillColor);
+      self.circle(self.centerX, self.centerY, fromRadius, self.settings.outerCircleInnerStrokeColor);
+      self.stroke(self.settings.outerStrokeWidth, self.settings.outerStrokeColor);
+      self.circle(self.centerX, self.centerY, fromRadius - 3, self.settings.outerFillColor);
       self.circle(self.centerX, self.centerY, self.radiusInner, self.settings.innerFillColor);
+      self.stroke(self.settings.innerStrokeWidth, self.settings.innerStrokeColor);
 
       setTimeout(function(){
         self.expand(fromRadius, toRadius);
@@ -62,9 +69,9 @@
 
     /* Events */
     $(canvas).live("mouseover", function(e){
-      self.expand(self.radiusInner, self.radiusOuter);
+      self.expand(self.radiusOuterInit, self.radiusOuterEnd);
     }).live("mouseout", function(e){
-      self.expand(self.radiusOuter, self.radiusInner);
+      self.expand(self.radiusOuterEnd, self.radiusOuterInit);
     });
 
     /* Core Drawing Functions */
@@ -77,6 +84,10 @@
     };
 
     this.stroke = function(width, color) {
+      if(width === 0) {
+        return;
+      }
+
       ctx.lineWidth = width;
       ctx.strokeStyle = color;
       ctx.stroke();
@@ -151,9 +162,12 @@
   };
 
   $.fn.grouple.options = {
-    strokeWidth: 0,
-    strokeColor: "#000000",
-    innerFillColor: "#6699CC",
-    outerFillColor: "#DDDDDD"
+    innerStrokeWidth: 1,
+    innerStrokeColor: "#A5A5A5",
+    outerStrokeWidth: 1,
+    outerStrokeColor: "#A5A5A5",
+    innerFillColor: "#5E99CD",
+    outerFillColor: "#EBEBEB",
+    outerCircleInnerStrokeColor: "#FFFFFF"
   };
 }(jQuery));
