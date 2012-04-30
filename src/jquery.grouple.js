@@ -44,7 +44,7 @@
 
     /* Animation */
     this.expand = function(fromRadius, toRadius) {
-      if(fromRadius === toRadius) {
+      if(parseInt(fromRadius) === parseInt(toRadius)) {
         return;
       }
 
@@ -163,9 +163,9 @@
 
   $.fn.grouple.options = {
     innerStrokeWidth: 1,
-    innerStrokeColor: "#A5A5A5",
+    innerStrokeColor: "#A9A9A9",
     outerStrokeWidth: 1,
-    outerStrokeColor: "#A5A5A5",
+    outerStrokeColor: "#A9A9A9",
     innerFillColor: "#5E99CD",
     outerFillColor: "#EBEBEB",
     outerCircleInnerStrokeColor: "#FFFFFF"
