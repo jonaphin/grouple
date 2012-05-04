@@ -25,11 +25,19 @@
     this.radiusOuterEnd = (this.centerX < this.centerY ? this.centerX : this.centerY) * 0.9;
     this.radiusInner = this.radiusOuterEnd * 0.6;
     this.radiusOuterInit = this.radiusInner + ((this.radiusOuterEnd - this.radiusInner) / 2);
-    this.radiusSubsetsRail = this.radiusOuterInit;
-    this.radiusSubcircle = this.radiusOuterEnd - this.radiusInner;
+    this.radiusSubsetsRail = this.radiusInner + ((this.radiusOuterInit - this.radiusInner) / 2);
+    this.radiusSubcircle = function() { return this.radiusCurrent - this.radiusInner; };
+    this.radiusCurrent = this.radiusOuterInit;
+
+    this.bounds = {
+      x: [$(container).position().left, $(container).position().left + self.canvasWidth],
+      y: [$(container).position().top, $(container).position().top + self.canvasHeight]
+    }
+
+    this.status = "idle";
 
     /* initialize canvas */
-    $(container).html('<canvas class="grouple-canvas" width="'+this.canvasWidth+'" height="'+this.canvasHeight+'"></canvas>');
+    $(container).html('<div class="grouple-elems"></div><canvas class="grouple-canvas" width="'+this.canvasWidth+'" height="'+this.canvasHeight+'"></canvas>');
     var canvas = $(container).find("canvas")[0];
     var ctx = canvas.getContext("2d");
 
@@ -59,25 +67,33 @@
         direction = "+";
       }
 
-      if(direction === "+" && fromRadius >= toRadius) {
+      if(direction === "+" && Math.floor(self.radiusCurrent) >= Math.floor(toRadius)) {
+        this.status = "expanded";
         return;
-      } else if(direction === "-" && fromRadius <= toRadius) {
+      } else if(direction === "-" && Math.ceil(self.radiusCurrent) <= Math.ceil(toRadius)) {
+        this.status = "shrunk";
         return;
       }
+
+      if(direction === "+") {
+        self.radiusCurrent += 1; // 1 will be replaced by SLOW(1) / MID(5) / FAST(10) / CUSTOM(X)
+        //percentGrowth = 1;
+        percentGrowth = (self.radiusCurrent - fromRadius) / (toRadius - fromRadius);
+        this.status = "expanding";
+      } else {
+        self.radiusCurrent -= 1;
+        percentGrowth = 1 - ((fromRadius - self.radiusCurrent) / (fromRadius - toRadius));
+        this.status = "shrinking";
+      }
+
+      
+      //console.log("fr: " + fromRadius + " tr: " + toRadius);
 
       self.clear();
 
-      if(direction === "+") {
-        fromRadius += 1; // 1 will be replaced by SLOW(1) / MID(5) / FAST(10) / CUSTOM(X)
-        percentGrowth = fromRadius / toRadius;
-      } else {
-        fromRadius -= 1;
-        percentGrowth = 1 - (toRadius / fromRadius);
-      }
-
-      self.circle(self.centerX, self.centerY, fromRadius, self.settings.outerCircleInnerStrokeColor);
+      self.circle(self.centerX, self.centerY, self.radiusCurrent, self.settings.outerCircleInnerStrokeColor);
       self.stroke(self.settings.outerStrokeWidth, self.settings.outerStrokeColor);
-      self.circle(self.centerX, self.centerY, fromRadius - 3, self.settings.outerFillColor);
+      self.circle(self.centerX, self.centerY, self.radiusCurrent - 3, self.settings.outerFillColor);
       self.circle(self.centerX, self.centerY, self.radiusInner, self.settings.innerFillColor);
       self.stroke(self.settings.innerStrokeWidth, self.settings.innerStrokeColor);
 
@@ -93,19 +109,25 @@
     }
 
     this.expandSubsets = function(percentOfSize) {
+      if(percentOfSize == 0) {
+        $(container).find(".grouple-elems").hide();
+      } else {
+        $(container).find(".grouple-elems").show();
+      }
+
       var el = $('.' + self.subsetClassName);
       el.css("background-size", (45 * percentOfSize)+"px auto");
-      el.css("height", ((self.radiusSubcircle * percentOfSize) - 3)+"px");
-      el.css("width", ((self.radiusSubcircle * percentOfSize) - 3)+"px");
-      el.css("left", 9-(self.radiusSubcircle * percentOfSize / 2)+"px")
-      el.css("top", 9-(self.radiusSubcircle * percentOfSize / 2)+"px")
-      el.css("border-radius", (self.radiusSubcircle * percentOfSize)+"px")
+      el.css("height", ((self.radiusSubcircle()  * percentOfSize) - 3)+"px");
+      el.css("width", ((self.radiusSubcircle() * percentOfSize) - 3)+"px");
+      el.css("left", 9-(self.radiusSubcircle() * percentOfSize / 2)+"px")
+      el.css("top", 9-(self.radiusSubcircle() * percentOfSize / 2)+"px")
+      el.css("border-radius", (self.radiusCurrent * percentOfSize)+"px")
       el.css("position", "absolute")
     }
 
     this.subcircle = function(angle, content) {
       var coords = self.coordinatesAtAngle(angle, self.radiusSubsetsRail);
-      return new CircleElement(self, (self.items.length + 1), coords.x, coords.y, self.radiusSubcircle, content);
+      return new CircleElement(self, (self.items.length + 1), coords.x, coords.y, self.radiusSubcircle(), content);
     };
 
     this.coordinatesAtAngle = function(angle, radius) {
@@ -119,11 +141,29 @@
     };
 
     /* Events */
-    $(canvas).live("mouseover", function(e){
-      self.expand(self.radiusOuterInit, self.radiusOuterEnd);
-    }).live("mouseout", function(e){
+    $(window).mousemove(function(e) {
+      if(self.status == "expanding" || self.status == "shrinking") {
+        return;
+      }
+
+      if(e.clientX >= self.bounds.x[0] && e.clientX <= self.bounds.x[1]) {
+        if(e.clientY >= self.bounds.y[0] && e.clientY <= self.bounds.y[1]) {
+          if(self.status == "expanded") {
+            return;
+          }
+          self.expand(self.radiusOuterInit, self.radiusOuterEnd);
+          return;
+        }
+      }
+
+      if(self.status == "shrunk") {
+        return;
+      }
       self.shrink(self.radiusOuterEnd, self.radiusOuterInit);
     });
+
+
+    
 
     /* Core Drawing Functions */
     this.circle = function(centerX, centerY, radius, fillColor) {
@@ -147,23 +187,6 @@
     this.clear = function() {
       ctx.clearRect(0, 0, self.canvasWidth, self.canvasHeight);
     };
-
-    /* Events Functions */
-    this.event_to_canvas = function(event) {
-      if (event.layerX || event.layerX === 0 ) { // Firefox
-        event._x = event.layerX;
-        event._y = event.layerY;
-      } else if (event.offsetX || event.offsetX === 0) { // Opera
-        event._x = event.offsetX;
-        event._y = event.offsetY;
-      }
-
-      // Map the event to the object's handler
-      var handler = self[event.type];
-      if (typeof handler === "function") {
-        handler(event);
-      }
-    };
   };
 
   /* Circle Element */
@@ -179,7 +202,7 @@
     };
 
     this.divCircle = function(centerX, centerY, radius, icon) {
-      $(self.parent.container).append("<div style='position:absolute;left:"+centerX+"px;top:"+centerY+"px;'>\
+      $(self.parent.container).find(".grouple-elems").append("<div style='position:absolute;left:"+centerX+"px;top:"+centerY+"px;'>\
         <div class='"+self.parent.subsetClassName+"' style='background-image:url("+icon+");background-size:"+(45 * 0)+"px auto;border-radius:20px;height:"+(35*0)+"px;width:"+(35*0)+"px;'></div> \
       </div>");
     }
