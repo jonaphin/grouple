@@ -116,13 +116,23 @@
       }
 
       var el = $('.' + self.subsetClassName);
+
       el.css("background-size", (45 * percentOfSize)+"px auto");
-      el.css("height", ((self.radiusSubcircle()  * percentOfSize) - 3)+"px");
+      el.css("height", Math.floor((self.radiusSubcircle()  * percentOfSize) - 3)+"px");
       el.css("width", ((self.radiusSubcircle() * percentOfSize) - 3)+"px");
-      el.css("left", 9-(self.radiusSubcircle() * percentOfSize / 2)+"px")
-      el.css("top", 9-(self.radiusSubcircle() * percentOfSize / 2)+"px")
-      el.css("border-radius", (self.radiusCurrent * percentOfSize)+"px")
-      el.css("position", "absolute")
+      el.css("border-radius", (self.radiusCurrent * percentOfSize)+"px");
+      el.css("position", "absolute");
+      el.css("left", 9-(self.radiusSubcircle() * percentOfSize / 2)+"px");
+      el.css("top", 9-(self.radiusSubcircle() * percentOfSize / 2)+"px");
+
+      for(var i = 0; i < self.items.length; i++) {
+        el = self.items[i];
+        var angle = self.angleAtIndex(i);
+        var new_coords = self.coordinatesAtAngle(angle, self.radiusCurrent - 22.5);
+
+        //$("#grouple-ce-outer-"+i).css("left", new_coords.x+"px");
+        //$("#grouple-ce-outer-"+i).css("top", new_coords.y+"px");
+      }
     }
 
     this.subcircle = function(angle, content) {
@@ -139,6 +149,13 @@
         y: self.centerY + (radius * Math.sin(angle))
       };
     };
+
+    this.angleAtIndex = function(index) {
+      if(index === 0 || self.items.length < 1)
+        return 0;
+
+      return (360 / self.items.length) * index;
+    }
 
     /* Events */
     $(window).mousemove(function(e) {
@@ -202,7 +219,7 @@
     };
 
     this.divCircle = function(centerX, centerY, radius, icon) {
-      $(self.parent.container).find(".grouple-elems").append("<div style='position:absolute;left:"+centerX+"px;top:"+centerY+"px;'>\
+      $(self.parent.container).find(".grouple-elems").append("<div id='grouple-ce-outer-"+self.id+"' style='position:absolute;left:"+centerX+"px;top:"+centerY+"px;'>\
         <div class='"+self.parent.subsetClassName+"' style='background-image:url("+icon+");background-size:"+(45 * 0)+"px auto;border-radius:20px;height:"+(35*0)+"px;width:"+(35*0)+"px;'></div> \
       </div>");
     }
