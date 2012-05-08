@@ -26,15 +26,15 @@
     this.radiusInner = this.radiusOuterEnd * 0.6;
     this.radiusOuterInit = this.radiusInner + ((this.radiusOuterEnd - this.radiusInner) / 2);
     this.radiusSubsetsRail = this.radiusInner + ((this.radiusOuterInit - this.radiusInner) / 2);
-    this.radiusSubcircle = function() { return this.radiusCurrent - this.radiusInner; };
-    this.radiusCurrent = this.radiusOuterInit;
+    this.radiusSubcircle = function() { return  (self.radiusOuterEnd - self.radiusSubsetsRail); };
+    this.radiusCurrent = this.radiusOuterEnd;
 
     this.bounds = {
       x: [$(container).position().left, $(container).position().left + self.canvasWidth],
       y: [$(container).position().top, $(container).position().top + self.canvasHeight]
-    }
+    };
 
-    this.status = "idle";
+    this.status = "shrunk";
 
     /* initialize canvas */
     $(container).html('<div class="grouple-elems"></div><canvas class="grouple-canvas" width="'+this.canvasWidth+'" height="'+this.canvasHeight+'"></canvas>');
@@ -48,7 +48,7 @@
       // Outer Circle outer Stroke
       self.stroke(self.settings.outerStrokeWidth, self.settings.outerStrokeColor);
       // Outer Circle
-      self.circle(self.centerX, self.centerY, self.radiusOuterInit - 3, self.settings.outerFillColor);
+      self.circle(self.centerX, self.centerY, self.radiusOuterInit - (self.radiusCurrent*0.03), self.settings.outerFillColor);
       // Inner Circle
       self.circle(self.centerX, self.centerY, self.radiusInner, self.settings.innerFillColor);
       // Inner Circle Stroke
@@ -76,24 +76,21 @@
       }
 
       if(direction === "+") {
-        self.radiusCurrent += 1; // 1 will be replaced by SLOW(1) / MID(5) / FAST(10) / CUSTOM(X)
+        self.radiusCurrent += 5; // will be replaced by SLOW(1) / MID(5) / FAST(10) / CUSTOM(X)
         //percentGrowth = 1;
         percentGrowth = (self.radiusCurrent - fromRadius) / (toRadius - fromRadius);
         this.status = "expanding";
       } else {
-        self.radiusCurrent -= 1;
+        self.radiusCurrent -= 5;
         percentGrowth = 1 - ((fromRadius - self.radiusCurrent) / (fromRadius - toRadius));
         this.status = "shrinking";
       }
-
-      
-      //console.log("fr: " + fromRadius + " tr: " + toRadius);
 
       self.clear();
 
       self.circle(self.centerX, self.centerY, self.radiusCurrent, self.settings.outerCircleInnerStrokeColor);
       self.stroke(self.settings.outerStrokeWidth, self.settings.outerStrokeColor);
-      self.circle(self.centerX, self.centerY, self.radiusCurrent - 3, self.settings.outerFillColor);
+      self.circle(self.centerX, self.centerY, self.radiusCurrent - (self.radiusCurrent*0.03), self.settings.outerFillColor);
       self.circle(self.centerX, self.centerY, self.radiusInner, self.settings.innerFillColor);
       self.stroke(self.settings.innerStrokeWidth, self.settings.innerStrokeColor);
 
@@ -106,10 +103,10 @@
 
     this.shrink = function(fromRadius, toRadius) {
       self.expand(fromRadius, toRadius, "-");
-    }
+    };
 
     this.expandSubsets = function(percentOfSize) {
-      if(percentOfSize == 0) {
+      if(percentOfSize === 0) {
         $(container).find(".grouple-elems").hide();
       } else {
         $(container).find(".grouple-elems").show();
@@ -117,23 +114,26 @@
 
       var el = $('.' + self.subsetClassName);
 
-      el.css("background-size", (45 * percentOfSize)+"px auto");
-      el.css("height", Math.floor((self.radiusSubcircle()  * percentOfSize) - 3)+"px");
-      el.css("width", ((self.radiusSubcircle() * percentOfSize) - 3)+"px");
+      el.css("background-size", (self.elementBackgroundSize * percentOfSize)+"px auto");
+      el.css("height", Math.floor(self.radiusSubcircle()  * percentOfSize) +"px");
+      el.css("width", Math.floor(self.radiusSubcircle() * percentOfSize) +"px");
       el.css("border-radius", (self.radiusCurrent * percentOfSize)+"px");
       el.css("position", "absolute");
+
+      // TODO: make left and top a function of the parent container
       el.css("left", 9-(self.radiusSubcircle() * percentOfSize / 2)+"px");
       el.css("top", 9-(self.radiusSubcircle() * percentOfSize / 2)+"px");
 
       for(var i = 0; i < self.items.length; i++) {
         el = self.items[i];
         var angle = self.angleAtIndex(i);
-        var new_coords = self.coordinatesAtAngle(angle, self.radiusCurrent - 22.5);
+        var new_coords = self.coordinatesAtAngle(angle, self.radiusCurrent - (self.radiusSubcircle() * 0.7 * percentOfSize));
 
-        //$("#grouple-ce-outer-"+i).css("left", new_coords.x+"px");
-        //$("#grouple-ce-outer-"+i).css("top", new_coords.y+"px");
+
+        $("#grouple-ce-outer-"+(i+1)).css("left", (new_coords.x)+"px");
+        $("#grouple-ce-outer-"+(i+1)).css("top", (new_coords.y)+"px");
       }
-    }
+    };
 
     this.subcircle = function(angle, content) {
       var coords = self.coordinatesAtAngle(angle, self.radiusSubsetsRail);
@@ -151,21 +151,22 @@
     };
 
     this.angleAtIndex = function(index) {
-      if(index === 0 || self.items.length < 1)
+      if(index === 0 || self.items.length < 1) {
         return 0;
+      }
 
       return (360 / self.items.length) * index;
-    }
+    };
 
     /* Events */
     $(window).mousemove(function(e) {
-      if(self.status == "expanding" || self.status == "shrinking") {
+      if(self.status === "expanding" || self.status === "shrinking") {
         return;
       }
 
       if(e.clientX >= self.bounds.x[0] && e.clientX <= self.bounds.x[1]) {
         if(e.clientY >= self.bounds.y[0] && e.clientY <= self.bounds.y[1]) {
-          if(self.status == "expanded") {
+          if(self.status === "expanded") {
             return;
           }
           self.expand(self.radiusOuterInit, self.radiusOuterEnd);
@@ -173,7 +174,7 @@
         }
       }
 
-      if(self.status == "shrunk") {
+      if(self.status === "shrunk") {
         return;
       }
       self.shrink(self.radiusOuterEnd, self.radiusOuterInit);
@@ -219,13 +220,15 @@
     };
 
     this.divCircle = function(centerX, centerY, radius, icon) {
-      $(self.parent.container).find(".grouple-elems").append("<div id='grouple-ce-outer-"+self.id+"' style='position:absolute;left:"+centerX+"px;top:"+centerY+"px;'>\
-        <div class='"+self.parent.subsetClassName+"' style='background-image:url("+icon+");background-size:"+(45 * 0)+"px auto;border-radius:20px;height:"+(35*0)+"px;width:"+(35*0)+"px;'></div> \
-      </div>");
-    }
+      var inner_html = "<div id='grouple-ce-outer-"+self.id+"' style='position:absolute;left:"+centerX+"px;top:"+centerY+"px;'>";
+      inner_html    += "  <div class='"+self.parent.subsetClassName+"' style='background-image:url("+icon+");background-size:"+(self.elementBackgroundSize * 0)+"px auto;border-radius:20px;'></div>";
+      inner_html    += "</div>";
+    
+      $(self.parent.container).find(".grouple-elems").append(inner_html);
+    };
 
     this.render();
-  }
+  };
 
 
   /* jQuery Plugin */
@@ -237,8 +240,9 @@
 
     this.opts = opts;
 
-    if(window.groupleIdCounter === undefined)
+    if(window.groupleIdCounter === undefined) {
       window.groupleIdCounter = 0;
+    }
 
     /* Allow Options to be set by the user */
     this.options = function(obj) {
@@ -285,6 +289,7 @@
     outerStrokeColor: "#A9A9A9",
     innerFillColor: "#5E99CD",
     outerFillColor: "#EBEBEB",
-    outerCircleInnerStrokeColor: "#FFFFFF"
+    outerCircleInnerStrokeColor: "#FFFFFF",
+    elementBackgroundSize: 45
   };
 }(jQuery));
